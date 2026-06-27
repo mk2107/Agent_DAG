@@ -1,0 +1,33 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  name      String?
+  password  String
+  sessions  RagSession[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model RagSession {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentName   String?
+  documentText   String?
+  chunkSize      Int      @default(500)
+  chunkOverlap   Int      @default(50)
+  topK           Int      @default(3)
+  promptTemplate String   @default("Use the following context to answer the question. If you don't know, say you don't know.\n\nContext:\n{context}\n\nQuestion: {question}\n\nAnswer:")
+  state          String   @default("{}") // Stores stringified JSON of the current LangGraph state
+  currentNode    String   @default("START") // START, supervisor, ingest, retrieve, generate, END
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
